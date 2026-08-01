@@ -165,16 +165,17 @@ export const Login = async (req, res) => {
       return res.status(200).json({ data: existinguser, token });
     }
 
-    // Unrecognized device — hold the login, require OTP before issuing a token.
     const code = await createOTP({
       userId: existinguser._id,
       purpose: "new_device_login",
       target: existinguser.email,
       meta: { deviceId, ...deviceContext },
     });
-    
 
-    await sendNewDeviceLoginEmail({
+    // Fire-and-forget: the OTP is already saved and verifiable regardless of
+    // whether the email finishes sending before we respond. Blocking on SMTP
+    // here is what was causing login to hang — don't repeat that mistake.
+    sendNewDeviceLoginEmail({
       to: existinguser.email,
       name: existinguser.name,
       browser: deviceContext.browser,
@@ -182,7 +183,7 @@ export const Login = async (req, res) => {
       location: deviceContext.location,
       ip: deviceContext.ip,
       code,
-    });
+    }).catch((err) => console.log("New-device email failed to send:", err.message));
 
     return res.status(200).json({
       requiresOTP: true,
