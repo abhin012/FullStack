@@ -152,7 +152,7 @@
 "home.asked": "preguntado",
 "question.answersCount": "Respuesta",
 "question.answersCountPlural": "Respuestas",
-"question.askedOn": "Preguntado",
+"questions.askedOn": "Preguntado",
 "question.yourAnswer": "Tu respuesta",
 "question.answerPlaceholder": "Escribe tu respuesta aquí... Puedes usar formato Markdown.",
 "question.postAnswer": "Publicar tu respuesta",
