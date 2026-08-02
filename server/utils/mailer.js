@@ -1,17 +1,24 @@
-import { Resend } from "resend";
+import * as brevo from "@getbrevo/brevo";
 import dotenv from "dotenv";
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
-// Resend's free tier requires sending from their shared test domain unless you
-// verify your own domain. This works immediately with no setup for testing/demo.
-const FROM_ADDRESS = "CodeQuest <onboarding@resend.dev>";
+const sendEmail = async ({ to, subject, html, attachments }) => {
+  const email = new brevo.SendSmtpEmail();
+  email.sender = { email: process.env.BREVO_SENDER_EMAIL, name: "CodeQuest" };
+  email.to = [{ email: to }];
+  email.subject = subject;
+  email.htmlContent = html;
+  if (attachments) email.attachment = attachments;
+
+  return apiInstance.sendTransacEmail(email);
+};
 
 export const sendOTPEmail = async ({ to, code, language }) => {
   try {
-    await resend.emails.send({
-      from: FROM_ADDRESS,
+    await sendEmail({
       to,
       subject: `Your verification code: ${code}`,
       html: `
@@ -26,15 +33,14 @@ export const sendOTPEmail = async ({ to, code, language }) => {
     });
     console.log(`OTP email sent to ${to}`);
   } catch (error) {
-    console.log("Failed to send OTP email:", error.message);
+    console.log("Failed to send OTP email:", error.response?.body || error.message);
     throw error;
   }
 };
 
 export const sendPaymentConfirmationEmail = async ({ to, name, plan, amount, invoiceNumber, invoicePdfBuffer }) => {
   try {
-    await resend.emails.send({
-      from: FROM_ADDRESS,
+    await sendEmail({
       to,
       subject: `Payment Confirmed – ${plan.toUpperCase()} Plan Activated`,
       html: `
@@ -51,19 +57,18 @@ export const sendPaymentConfirmationEmail = async ({ to, name, plan, amount, inv
         </div>
       `,
       attachments: invoicePdfBuffer
-        ? [{ filename: `${invoiceNumber}.pdf`, content: invoicePdfBuffer.toString("base64") }]
-        : [],
+        ? [{ name: `${invoiceNumber}.pdf`, content: invoicePdfBuffer.toString("base64") }]
+        : undefined,
     });
     console.log(`Confirmation email sent to ${to}`);
   } catch (error) {
-    console.log("Failed to send confirmation email:", error.message);
+    console.log("Failed to send confirmation email:", error.response?.body || error.message);
   }
 };
 
 export const sendNewDeviceLoginEmail = async ({ to, name, browser, os, location, ip, code }) => {
   try {
-    await resend.emails.send({
-      from: FROM_ADDRESS,
+    await sendEmail({
       to,
       subject: "New login attempt — verification required",
       html: `
@@ -85,7 +90,7 @@ export const sendNewDeviceLoginEmail = async ({ to, name, browser, os, location,
     });
     console.log(`New-device login email sent to ${to}`);
   } catch (error) {
-    console.log("Failed to send new-device login email:", error.message);
+    console.log("Failed to send new-device login email:", error.response?.body || error.message);
     throw error;
   }
 };
