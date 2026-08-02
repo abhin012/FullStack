@@ -153,6 +153,7 @@
 "question.answersCount": "Answer",
 "question.answersCountPlural": "Answers",
 "question.askedOn": "Asked",
+"question.askQuestion": "Ask Question",
 "question.yourAnswer": "Your Answer",
 "question.answerPlaceholder": "Write your answer here... You can use Markdown formatting.",
 "question.postAnswer": "Post Your Answer",
@@ -194,5 +195,6 @@
 "sidebar.notifications2": "Notifications",
 "sidebar.pricing": "Pricing",
 "saves.title": "Saved Posts", "saves.empty": "You haven't bookmarked any posts yet.",
+
 "search.results": "Search results for", "search.noResults": "No results found.", "search.questions": "Questions", "search.posts": "Community Posts"
 }

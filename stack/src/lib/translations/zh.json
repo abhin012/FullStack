@@ -152,6 +152,7 @@
 "home.asked": "提问于",
 "question.answersCount": "个回答",
 "question.answersCountPlural": "个回答",
+"questions.askQuestion": "提出问题",
 "question.askedOn": "提问于",
 "question.yourAnswer": "你的回答",
 "question.answerPlaceholder": "在此写下你的回答……支持 Markdown 格式。",

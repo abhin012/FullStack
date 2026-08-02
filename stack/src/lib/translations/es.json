@@ -157,6 +157,7 @@
 "question.answerPlaceholder": "Escribe tu respuesta aquí... Puedes usar formato Markdown.",
 "question.postAnswer": "Publicar tu respuesta",
 "question.posting": "Publicando...",
+"questions.askQuestion": "Poser une question",
 "question.share": "Compartir",
 "question.flag": "Reportar",
 "question.delete": "Eliminar",

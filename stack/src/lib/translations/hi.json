@@ -162,6 +162,7 @@
 "question.delete": "हटाएं",
 "question.closedBy": "इनके द्वारा बंद किया गया",
 "question.closeQuestion": "प्रश्न बंद करें",
+"questions.askQuestion": "प्रश्न पूछें",
 "question.acceptedAnswer": "स्वीकृत उत्तर",
 "question.closedNotice": "यह प्रश्न बंद है और अब उत्तर स्वीकार नहीं कर रहा है।",
 "question.notFound": "कोई प्रश्न नहीं मिला।",

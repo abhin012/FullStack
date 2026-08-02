@@ -153,6 +153,7 @@
 "question.answersCount": "Resposta",
 "question.answersCountPlural": "Respostas",
 "question.askedOn": "Perguntado",
+"questions.askQuestion": "Fazer uma pergunta",
 "question.yourAnswer": "Sua resposta",
 "question.answerPlaceholder": "Escreva sua resposta aqui... Você pode usar formatação Markdown.",
 "question.postAnswer": "Publicar sua resposta",
