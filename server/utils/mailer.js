@@ -1,19 +1,21 @@
-import * as brevo from "@getbrevo/brevo";
+import { BrevoClient } from "@getbrevo/brevo";
 import dotenv from "dotenv";
 dotenv.config();
 
-const apiInstance = new brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+const brevo = new BrevoClient({
+  apiKey: process.env.BREVO_API_KEY,
+});
 
-const sendEmail = async ({ to, subject, html, attachments }) => {
-  const email = new brevo.SendSmtpEmail();
-  email.sender = { email: process.env.BREVO_SENDER_EMAIL, name: "CodeQuest" };
-  email.to = [{ email: to }];
-  email.subject = subject;
-  email.htmlContent = html;
-  if (attachments) email.attachment = attachments;
+const SENDER = { name: "CodeQuest", email: process.env.BREVO_SENDER_EMAIL };
 
-  return apiInstance.sendTransacEmail(email);
+const sendEmail = async ({ to, subject, html, attachment }) => {
+  return brevo.transactionalEmails.sendTransacEmail({
+    sender: SENDER,
+    to: [{ email: to }],
+    subject,
+    htmlContent: html,
+    ...(attachment ? { attachment } : {}),
+  });
 };
 
 export const sendOTPEmail = async ({ to, code, language }) => {
@@ -33,7 +35,7 @@ export const sendOTPEmail = async ({ to, code, language }) => {
     });
     console.log(`OTP email sent to ${to}`);
   } catch (error) {
-    console.log("Failed to send OTP email:", error.response?.body || error.message);
+    console.log("Failed to send OTP email:", error.message);
     throw error;
   }
 };
@@ -56,13 +58,13 @@ export const sendPaymentConfirmationEmail = async ({ to, name, plan, amount, inv
           <p>Your invoice is attached to this email. Thank you for subscribing!</p>
         </div>
       `,
-      attachments: invoicePdfBuffer
+      attachment: invoicePdfBuffer
         ? [{ name: `${invoiceNumber}.pdf`, content: invoicePdfBuffer.toString("base64") }]
         : undefined,
     });
     console.log(`Confirmation email sent to ${to}`);
   } catch (error) {
-    console.log("Failed to send confirmation email:", error.response?.body || error.message);
+    console.log("Failed to send confirmation email:", error.message);
   }
 };
 
@@ -90,7 +92,7 @@ export const sendNewDeviceLoginEmail = async ({ to, name, browser, os, location,
     });
     console.log(`New-device login email sent to ${to}`);
   } catch (error) {
-    console.log("Failed to send new-device login email:", error.response?.body || error.message);
+    console.log("Failed to send new-device login email:", error.message);
     throw error;
   }
 };
