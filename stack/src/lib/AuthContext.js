@@ -23,27 +23,28 @@ export const AuthProvider = ({ children }) => {
   const intervalRef = useRef(null);
 
   const Signup = async ({ name, email, password }) => {
-    setloading(true);
-    seterror(null);
-    try {
-      const res = await axiosInstance.post("/user/signup", {
-        name,
-        email,
-        password,
-      });
-      const { data, token } = res.data;
-      localStorage.setItem("user", JSON.stringify({ ...data, token }));
-      localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
-      setUser(data);
-      toast.success("Signup Successful");
-    } catch (error) {
-      const msg = error.response?.data.message || "Signup failed";
-      seterror(msg);
-      toast.error(msg);
-    } finally {
-      setloading(false);
-    }
-  };
+  setloading(true);
+  seterror(null);
+  try {
+    const res = await axiosInstance.post("/user/signup", {
+      name,
+      email,
+      password,
+      deviceId: getDeviceId(),
+    });
+    const { data, token } = res.data;
+    localStorage.setItem("user", JSON.stringify({ ...data, token }));
+    localStorage.setItem("lastActivity", String(Date.now()));
+    setUser(data);
+    toast.success("Signup Successful");
+  } catch (error) {
+    const msg = error.response?.data.message || "Signup failed";
+    seterror(msg);
+    toast.error(msg);
+  } finally {
+    setloading(false);
+  }
+};
 
   const Login = async ({ email, password }) => {
     setloading(true);

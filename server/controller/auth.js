@@ -10,8 +10,12 @@ import { createOTP,verifyOTP } from "../utils/otpUtils.js";
 import { sendNewDeviceLoginEmail } from "../utils/mailer.js";
 
 export const Signup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, deviceId } = req.body;
   try {
+    if (!deviceId) {
+      return res.status(400).json({ message: "Device identifier missing" });
+    }
+
     const exisitinguser = await user.findOne({ email });
     if (exisitinguser) {
       return res.status(404).json({ message: "User already exist" });
@@ -21,19 +25,32 @@ export const Signup = async (req, res) => {
       name,
       email,
       password: hashpassword,
+      trustedDeviceIds: [deviceId], // the device used to sign up is trusted immediately
     });
+
     const token = jwt.sign(
       { email: newuser.email, id: newuser._id },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "7d" }
     );
+
+    const deviceContext = await buildDeviceContext(req);
+    await createSession({
+      userId: newuser._id,
+      deviceId,
+      token,
+      deviceContext,
+      isTrusted: true,
+    });
+
     res.status(200).json({ data: newuser, token });
   } catch (error) {
-    console.log(error); // add this too, so future failures aren't silent
+    console.log(error);
     res.status(500).json("something went wrong..");
     return;
   }
 };
+
 export const getMyPlan = async (req, res) => {
   try {
     const currentUser = await user.findById(req.userid);

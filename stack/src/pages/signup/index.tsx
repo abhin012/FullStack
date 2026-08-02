@@ -101,20 +101,7 @@ export default function SignUpPage() {
                 </p>
               </div>
 
-              <div className="flex items-start space-x-2">
-                <Checkbox id="terms" className="mt-1" />
-                <Label htmlFor="terms" className="text-sm leading-relaxed">
-                  I agree to the{" "}
-                  <Link href="#" className="text-blue-600 hover:underline">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="#" className="text-blue-600 hover:underline">
-                    Privacy Policy
-                  </Link>
-                </Label>
-              </div>
-
+              
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-sm"
