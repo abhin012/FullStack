@@ -1,25 +1,17 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from "dotenv";
-import dns from "dns";
-
 dotenv.config();
-dns.setDefaultResultOrder("ipv4first");
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Resend's free tier requires sending from their shared test domain unless you
+// verify your own domain. This works immediately with no setup for testing/demo.
+const FROM_ADDRESS = "CodeQuest <onboarding@resend.dev>";
 
 export const sendOTPEmail = async ({ to, code, language }) => {
   try {
-    await transporter.sendMail({
-      from: `"CodeQuest" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to,
       subject: `Your verification code: ${code}`,
       html: `
@@ -35,14 +27,14 @@ export const sendOTPEmail = async ({ to, code, language }) => {
     console.log(`OTP email sent to ${to}`);
   } catch (error) {
     console.log("Failed to send OTP email:", error.message);
-    throw error; // unlike payment confirmation, OTP delivery failure SHOULD surface to the user
+    throw error;
   }
 };
 
 export const sendPaymentConfirmationEmail = async ({ to, name, plan, amount, invoiceNumber, invoicePdfBuffer }) => {
   try {
-    await transporter.sendMail({
-      from: `"Community Feed" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to,
       subject: `Payment Confirmed – ${plan.toUpperCase()} Plan Activated`,
       html: `
@@ -59,19 +51,19 @@ export const sendPaymentConfirmationEmail = async ({ to, name, plan, amount, inv
         </div>
       `,
       attachments: invoicePdfBuffer
-        ? [{ filename: `${invoiceNumber}.pdf`, content: invoicePdfBuffer }]
+        ? [{ filename: `${invoiceNumber}.pdf`, content: invoicePdfBuffer.toString("base64") }]
         : [],
     });
     console.log(`Confirmation email sent to ${to}`);
   } catch (error) {
-    // Email failure should never block plan activation — log it, don't throw.
     console.log("Failed to send confirmation email:", error.message);
   }
 };
+
 export const sendNewDeviceLoginEmail = async ({ to, name, browser, os, location, ip, code }) => {
   try {
-    await transporter.sendMail({
-      from: `"CodeQuest Security" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to,
       subject: "New login attempt — verification required",
       html: `
