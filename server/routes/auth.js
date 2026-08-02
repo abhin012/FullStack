@@ -21,6 +21,7 @@ router.post("/signup", Signup);
 router.post("/login", Login);
 router.post("/forgot-password", ForgotPassword);
 router.post("/verify-login-otp", verifyLoginOTP);
+router.post("/verify-signup-otp", verifySignupOTP);
 router.get("/getalluser", getallusers);
 router.get("/my-plan", auth, getMyPlan);
 router.get("/me", auth, getMe);

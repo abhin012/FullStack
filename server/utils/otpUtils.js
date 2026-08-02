@@ -7,7 +7,7 @@ export const createOTP = async ({ userId, purpose, target, requestedLanguage, me
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await otp.create({
-    user: userId,
+    user: userId || undefined,
     code,
     purpose,
     target,
@@ -19,12 +19,15 @@ export const createOTP = async ({ userId, purpose, target, requestedLanguage, me
   return code;
 };
 
-export const verifyOTP = async ({ userId, purpose, code }) => {
-  const record = await otp.findOne({
-    user: userId,
-    purpose,
-    verified: false,
-  }).sort({ createdAt: -1 });
+export const verifyOTP = async ({ userId, target, purpose, code }) => {
+  const query = { purpose, verified: false };
+  if (userId) {
+    query.user = userId;
+  } else {
+    query.target = target; // signup: no user exists yet, key by the email instead
+  }
+
+  const record = await otp.findOne(query).sort({ createdAt: -1 });
 
   if (!record) {
     return { valid: false, message: "No pending verification found. Please try again." };

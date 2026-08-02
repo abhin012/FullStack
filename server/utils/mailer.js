@@ -96,3 +96,24 @@ export const sendNewDeviceLoginEmail = async ({ to, name, browser, os, location,
     throw error;
   }
 };
+export const sendSignupVerificationEmail = async ({ to, name, code }) => {
+  try {
+    await sendEmail({
+      to,
+      subject: `Verify your email — code ${code}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 400px;">
+          <h2>Verify your email to finish signing up</h2>
+          <p>Hi ${name},</p>
+          <p>Enter this code to confirm your email and activate your account:</p>
+          <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px;">${code}</p>
+          <p style="color: #666; font-size: 13px;">This code expires in 10 minutes. If you didn't sign up for CodeQuest, you can ignore this email.</p>
+        </div>
+      `,
+    });
+    console.log(`Signup verification email sent to ${to}`);
+  } catch (error) {
+    console.log("Failed to send signup verification email:", error.message);
+    throw error;
+  }
+};

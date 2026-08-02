@@ -7,7 +7,7 @@ import { getEffectivePlan } from "../utils/planUtils.js";
 import { addReputation } from "../utils/reputationUtils.js";
 import { buildDeviceContext, createSession } from "../utils/sessionUtils.js";
 import { createOTP,verifyOTP } from "../utils/otpUtils.js";
-import { sendNewDeviceLoginEmail } from "../utils/mailer.js";
+import { sendNewDeviceLoginEmail, sendSignupVerificationEmail} from "../utils/mailer.js";
 
 export const Signup = async (req, res) => {
   const { name, email, password, deviceId } = req.body;
@@ -15,17 +15,62 @@ export const Signup = async (req, res) => {
     if (!deviceId) {
       return res.status(400).json({ message: "Device identifier missing" });
     }
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
     const exisitinguser = await user.findOne({ email });
     if (exisitinguser) {
       return res.status(404).json({ message: "User already exist" });
     }
+
     const hashpassword = await bcrypt.hash(password, 12);
+
+    const code = await createOTP({
+      purpose: "signup_verification",
+      target: email,
+      meta: { name, email, hashpassword, deviceId },
+    });
+
+    await sendSignupVerificationEmail({ to: email, name, code });
+
+    res.status(200).json({
+      requiresOTP: true,
+      message: "We sent a verification code to your email to activate your account.",
+      email,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json("something went wrong..");
+    return;
+  }
+};
+
+export const verifySignupOTP = async (req, res) => {
+  const { email, code } = req.body;
+  try {
+    const result = await verifyOTP({
+      target: email,
+      purpose: "signup_verification",
+      code,
+    });
+
+    if (!result.valid) {
+      return res.status(400).json({ message: result.message });
+    }
+
+    const { name, hashpassword, deviceId } = result.meta;
+
+    const alreadyExists = await user.findOne({ email });
+    if (alreadyExists) {
+      return res.status(404).json({ message: "User already exist" });
+    }
+
     const newuser = await user.create({
       name,
       email,
       password: hashpassword,
-      trustedDeviceIds: [deviceId], // the device used to sign up is trusted immediately
+      trustedDeviceIds: [deviceId],
     });
 
     const token = jwt.sign(
@@ -47,7 +92,6 @@ export const Signup = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json("something went wrong..");
-    return;
   }
 };
 

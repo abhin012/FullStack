@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/lib/AuthContext";
 import { useState } from "react";
 import { useRouter } from "next/router";
@@ -17,11 +16,16 @@ import { toast } from "react-toastify";
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { Signup, loading } = useAuth();
+  const { Signup, VerifySignupOTP, loading } = useAuth();
   const [form, setform] = useState({ name: "", email: "", password: "" });
+  const [otpStage, setOtpStage] = useState(false);
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+
   const handleChange = (e: any) => {
     setform({ ...form, [e.target.id]: e.target.value });
   };
+
   const handlesubmit = async (e: any) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.password) {
@@ -29,12 +33,80 @@ export default function SignUpPage() {
       return;
     }
     try {
-      await Signup(form);
-      router.push("/");
+      const result = await Signup(form);
+      if (result?.requiresOTP) {
+        setOtpStage(true);
+      }
     } catch (error) {
       console.log(error);
     }
   };
+
+  const handleVerify = async (e: any) => {
+    e.preventDefault();
+    if (!code.trim()) return;
+    setVerifying(true);
+    try {
+      await VerifySignupOTP({ email: form.email, code });
+      router.push("/");
+    } catch (error) {
+      // toast already shown inside VerifySignupOTP
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  if (otpStage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <form onSubmit={handleVerify}>
+            <Card>
+              <CardHeader className="space-y-1 text-center">
+                <CardTitle className="text-xl lg:text-2xl">Verify your email</CardTitle>
+                <CardDescription>
+                  We sent a verification code to {form.email} to activate your account.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="code" className="text-sm">
+                    Verification code
+                  </Label>
+                  <Input
+                    id="code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="123456"
+                    maxLength={6}
+                    className="text-center text-lg tracking-widest"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={verifying || !code.trim()}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-sm"
+                >
+                  {verifying ? "Verifying..." : "Verify & Create Account"}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpStage(false);
+                    setCode("");
+                  }}
+                  className="w-full text-center text-xs text-blue-600 hover:underline"
+                >
+                  Back to signup
+                </button>
+              </CardContent>
+            </Card>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -61,7 +133,6 @@ export default function SignUpPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm">
                   Display name
@@ -101,7 +172,6 @@ export default function SignUpPage() {
                 </p>
               </div>
 
-              
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-sm"

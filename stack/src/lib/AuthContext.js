@@ -32,15 +32,34 @@ export const AuthProvider = ({ children }) => {
       password,
       deviceId: getDeviceId(),
     });
-    const { data, token } = res.data;
-    localStorage.setItem("user", JSON.stringify({ ...data, token }));
-    localStorage.setItem("lastActivity", String(Date.now()));
-    setUser(data);
-    toast.success("Signup Successful");
+
+    if (res.data.requiresOTP) {
+      return { requiresOTP: true, email: res.data.email };
+    }
+    return { requiresOTP: false };
   } catch (error) {
     const msg = error.response?.data.message || "Signup failed";
     seterror(msg);
     toast.error(msg);
+    throw error;
+  } finally {
+    setloading(false);
+  }
+};
+
+const VerifySignupOTP = async ({ email, code }) => {
+  setloading(true);
+  try {
+    const res = await axiosInstance.post("/user/verify-signup-otp", { email, code });
+    const { data, token } = res.data;
+    localStorage.setItem("user", JSON.stringify({ ...data, token }));
+    localStorage.setItem("lastActivity", String(Date.now()));
+    setUser(data);
+    toast.success("Account verified — welcome!");
+  } catch (error) {
+    const msg = error.response?.data?.message || "Verification failed";
+    toast.error(msg);
+    throw error;
   } finally {
     setloading(false);
   }
@@ -151,7 +170,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, Signup, Login, VerifyLoginOTP, Logout, loading, error }}
+      value={{ user, Signup, Login, VerifyLoginOTP, VerifySignupOTP, Logout, loading, error }}
     >
       {children}
     </AuthContext.Provider>
