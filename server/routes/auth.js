@@ -11,7 +11,8 @@ import {
   toggleWatchTag,
   createFilter,
   deleteFilter,
-  verifyLoginOTP
+  verifyLoginOTP,
+  verifySignupOTP
 } from "../controller/auth.js";
 
 const router = express.Router();
